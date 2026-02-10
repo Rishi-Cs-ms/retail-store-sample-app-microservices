@@ -28,7 +28,7 @@ module "eks_addons" {
   ingress_nginx = {
     most_recent = true
     namespace   = "ingress-nginx"
-    
+
     # Basic configuration
     set = [
       {
@@ -56,7 +56,7 @@ module "eks_addons" {
         value = "256Mi"
       }
     ]
-    
+
     # AWS Load Balancer specific annotations
     set_sensitive = [
       {
@@ -87,15 +87,36 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # OPTIONAL: MONITORING STACK
+  # MONITORING STACK - Prometheus + Grafana
   # =============================================================================
-  # Uncomment below to enable monitoring (increases costs)
-  
-  # enable_kube_prometheus_stack = var.enable_monitoring
-  # kube_prometheus_stack = {
-  #   most_recent = true
-  #   namespace   = "monitoring"
-  # }
+  enable_kube_prometheus_stack = true
+  kube_prometheus_stack = {
+    most_recent = true
+    namespace   = "monitoring"
+
+    set = [
+      {
+        name  = "prometheus.prometheusSpec.retention"
+        value = "7d"
+      },
+      {
+        name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+        value = "10Gi"
+      },
+      {
+        name  = "grafana.adminPassword"
+        value = "admin123" # Change this in production!
+      },
+      {
+        name  = "grafana.service.type"
+        value = "LoadBalancer"
+      },
+      {
+        name  = "prometheus.service.type"
+        value = "LoadBalancer"
+      }
+    ]
+  }
 
   # =============================================================================
   # OPTIONAL: AWS LOAD BALANCER CONTROLLER
